@@ -1,5 +1,6 @@
 package com.hitanshudhawan.sankshipt.services;
 
+import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.URL;
 import com.hitanshudhawan.sankshipt.repositories.ShortUrlRepository;
 import com.hitanshudhawan.sankshipt.utils.ShortCodeGenerator;
@@ -10,7 +11,7 @@ import java.util.Optional;
 @Service
 public class ShortUrlServiceImpl implements ShortUrlService {
 
-    private ShortUrlRepository shortUrlRepository;
+    private final ShortUrlRepository shortUrlRepository;
 
     public ShortUrlServiceImpl(ShortUrlRepository shortUrlRepository) {
         this.shortUrlRepository = shortUrlRepository;
@@ -33,19 +34,17 @@ public class ShortUrlServiceImpl implements ShortUrlService {
     }
 
     @Override
-    public Optional<URL> findByShortCode(String shortCode) {
-        Optional<URL> urlOptional = shortUrlRepository.findByShortCode(shortCode);
+    public URL resolveShortCode(String shortCode) throws UrlNotFoundException {
+        URL url = shortUrlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException(String.format("No URL mapping found for short code: %s", shortCode)));
 
         // Validate the short code against the original URL for security
-        if (urlOptional.isPresent()) {
-            URL url = urlOptional.get();
-            if (!ShortCodeGenerator.validateShortCode(shortCode, url.getOriginalUrl())) {
-                // Short code doesn't match the original URL (possibly tampered)
-                return Optional.empty();
-            }
+        if (!ShortCodeGenerator.validateShortCode(shortCode, url.getOriginalUrl())) {
+            // Short code doesn't match the original URL (possibly tampered)
+            throw new UrlNotFoundException(String.format("Short code '%s' failed validation for stored URL: %s", shortCode, url.getOriginalUrl()));
         }
 
-        return urlOptional;
+        return url;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.hitanshudhawan.sankshipt.controllers;
 
+import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.URL;
 import com.hitanshudhawan.sankshipt.services.ShortUrlService;
 import org.springframework.http.ResponseEntity;
@@ -22,22 +23,13 @@ public class UrlController {
     }
 
     @GetMapping("/{shortCode}")
-    public RedirectView redirectToUrl(@PathVariable String shortCode) {
-        Optional<URL> urlOptional = shortUrlService.findByShortCode(shortCode);
-        
-        if (urlOptional.isPresent()) {
-            URL url = urlOptional.get();
-            RedirectView redirectView = new RedirectView();
-            redirectView.setUrl(url.getOriginalUrl());
-            redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
-            return redirectView;
-        } else {
-            // Return a redirect to a 404 page or error page
-            RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("/error/404");
-            redirectView.setStatusCode(HttpStatus.NOT_FOUND);
-            return redirectView;
-        }
+    public RedirectView redirectToUrl(@PathVariable String shortCode) throws UrlNotFoundException {
+        URL url = shortUrlService.resolveShortCode(shortCode);
+
+        RedirectView redirectView = new RedirectView();
+        redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        redirectView.setUrl(url.getOriginalUrl());
+        return redirectView;
     }
 
 }
