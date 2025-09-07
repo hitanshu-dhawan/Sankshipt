@@ -2,17 +2,13 @@ package com.hitanshudhawan.sankshipt.services;
 
 import com.hitanshudhawan.sankshipt.models.URL;
 import com.hitanshudhawan.sankshipt.repositories.ShortUrlRepository;
+import com.hitanshudhawan.sankshipt.utils.ShortCodeGenerator;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.Optional;
 
 @Service
 public class ShortUrlServiceImpl implements ShortUrlService {
-
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final int SHORT_CODE_LENGTH = 6;
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private ShortUrlRepository shortUrlRepository;
 
@@ -24,21 +20,32 @@ public class ShortUrlServiceImpl implements ShortUrlService {
     public URL createShortUrl(String originalUrl) {
         URL url = new URL();
         url.setOriginalUrl(originalUrl);
-        url.setShortCode(generateShortCode());
-        return shortUrlRepository.save(url);
+
+        // Save first to get the auto-generated ID
+        URL savedUrl = shortUrlRepository.save(url);
+
+        // Generate short code using the ID and original URL
+        String shortCode = ShortCodeGenerator.generateShortCode(savedUrl.getId(), originalUrl);
+        savedUrl.setShortCode(shortCode);
+
+        // Save again with the generated short code
+        return shortUrlRepository.save(savedUrl);
     }
 
     @Override
     public Optional<URL> findByShortCode(String shortCode) {
-        return shortUrlRepository.findByShortCode(shortCode);
-    }
+        Optional<URL> urlOptional = shortUrlRepository.findByShortCode(shortCode);
 
-    private String generateShortCode() {
-        StringBuilder shortCode = new StringBuilder();
-        for (int i = 0; i < SHORT_CODE_LENGTH; i++) {
-            shortCode.append(CHARACTERS.charAt(RANDOM.nextInt(CHARACTERS.length())));
+        // Validate the short code against the original URL for security
+        if (urlOptional.isPresent()) {
+            URL url = urlOptional.get();
+            if (!ShortCodeGenerator.validateShortCode(shortCode, url.getOriginalUrl())) {
+                // Short code doesn't match the original URL (possibly tampered)
+                return Optional.empty();
+            }
         }
-        return shortCode.toString();
+
+        return urlOptional;
     }
 
 }
