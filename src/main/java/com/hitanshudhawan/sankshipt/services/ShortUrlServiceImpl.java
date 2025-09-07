@@ -6,8 +6,6 @@ import com.hitanshudhawan.sankshipt.repositories.ShortUrlRepository;
 import com.hitanshudhawan.sankshipt.utils.ShortCodeGenerator;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class ShortUrlServiceImpl implements ShortUrlService {
 
@@ -45,6 +43,19 @@ public class ShortUrlServiceImpl implements ShortUrlService {
         }
 
         return url;
+    }
+
+    @Override
+    public void deleteShortUrl(String shortCode) throws UrlNotFoundException {
+        URL url = shortUrlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException(String.format("No URL mapping found for short code: %s", shortCode)));
+
+        // Validate the short code against the original URL for security
+        if (!ShortCodeGenerator.validateShortCode(shortCode, url.getOriginalUrl())) {
+            throw new UrlNotFoundException(String.format("Short code '%s' failed validation for stored URL: %s", shortCode, url.getOriginalUrl()));
+        }
+
+        shortUrlRepository.delete(url);
     }
 
 }

@@ -3,15 +3,11 @@ package com.hitanshudhawan.sankshipt.controllers;
 import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.URL;
 import com.hitanshudhawan.sankshipt.services.ShortUrlService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.view.RedirectView;
-
-import java.util.Optional;
 
 @RestController
 public class UrlController {
