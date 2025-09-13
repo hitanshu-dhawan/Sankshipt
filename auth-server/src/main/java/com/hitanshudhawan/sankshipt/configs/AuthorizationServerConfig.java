@@ -85,6 +85,9 @@ public class AuthorizationServerConfig {
                 Authentication principal = context.getPrincipal();
                 JwtClaimsSet.Builder claims = context.getClaims();
 
+                // Add user email as subject
+                claims.subject(principal.getName());
+
                 // Add roles to claims
                 List<String> roles = principal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
