@@ -37,3 +37,7 @@ springdoc:
     try-it-out-enabled: true
     tags-sorter: alpha
     operations-sorter: alpha
+    oauth:
+      client-id: sankshipt-client
+      client-secret: sankshipt-client-secret
+      use-basic-authentication-with-access-code-grant: true
