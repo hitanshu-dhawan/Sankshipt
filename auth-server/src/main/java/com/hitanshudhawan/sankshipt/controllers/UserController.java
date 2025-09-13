@@ -30,7 +30,8 @@ public class UserController {
                 signUpRequestDto.getFirstName(),
                 signUpRequestDto.getLastName(),
                 signUpRequestDto.getEmail(),
-                signUpRequestDto.getPassword()
+                signUpRequestDto.getPassword(),
+                signUpRequestDto.getRoles()
         );
 
         return ResponseEntity

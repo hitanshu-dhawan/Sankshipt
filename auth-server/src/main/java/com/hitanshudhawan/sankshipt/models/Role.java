@@ -14,8 +14,6 @@ public class Role extends BaseModel {
 
 /*
 
-We do not have the APIs for adding the roles and assigning them to the users. So, we will have to add them manually in the database.
-
 Queries to add the roles in the database:
 
 INSERT INTO roles (created_at, updated_at, value)

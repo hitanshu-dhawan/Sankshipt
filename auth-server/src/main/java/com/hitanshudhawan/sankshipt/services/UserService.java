@@ -3,35 +3,42 @@ package com.hitanshudhawan.sankshipt.services;
 import com.hitanshudhawan.sankshipt.exceptions.TokenNotFoundException;
 import com.hitanshudhawan.sankshipt.exceptions.UserAlreadyExistsException;
 import com.hitanshudhawan.sankshipt.exceptions.UserNotFoundException;
+import com.hitanshudhawan.sankshipt.models.Role;
 import com.hitanshudhawan.sankshipt.models.Token;
 import com.hitanshudhawan.sankshipt.models.User;
+import com.hitanshudhawan.sankshipt.repositories.RoleRepository;
 import com.hitanshudhawan.sankshipt.repositories.TokenRepository;
 import com.hitanshudhawan.sankshipt.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final RoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
             UserRepository userRepository,
             TokenRepository tokenRepository,
+            RoleRepository roleRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User signUp(String firstName, String lastName, String email, String password) throws UserAlreadyExistsException {
+    public User signUp(String firstName, String lastName, String email, String password, List<String> roles) throws UserAlreadyExistsException {
 
         User existingUser = userRepository.findByEmail(email).orElse(null);
         if (existingUser != null) {
@@ -43,6 +50,7 @@ public class UserService {
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setRoles(getRolesByValues(roles));
 
         return userRepository.save(user);
     }
@@ -103,6 +111,17 @@ public class UserService {
         token.setExpired(false);
 
         return token;
+    }
+
+    private List<Role> getRolesByValues(List<String> roleValues) {
+        List<Role> roles = new ArrayList<>();
+        for (String roleValue : roleValues) {
+            Role role = roleRepository.findByValue(roleValue).orElse(null);
+            if (role != null) {
+                roles.add(role);
+            }
+        }
+        return roles;
     }
 
 }
