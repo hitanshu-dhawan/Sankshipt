@@ -73,6 +73,11 @@ public class ShortUrlController {
                     responseCode = "200",
                     description = "Short URL deleted successfully",
                     content = @Content(schema = @Schema(implementation = ShortUrlResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Short URL not found",
+                    content = @Content
             )
     })
     public ResponseEntity<ShortUrlResponse> deleteShortUrl(

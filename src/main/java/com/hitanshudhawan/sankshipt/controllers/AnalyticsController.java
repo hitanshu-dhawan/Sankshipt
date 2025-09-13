@@ -35,6 +35,7 @@ public class AnalyticsController {
 
     @GetMapping("/{shortCode}/count")
     @Operation(
+            operationId = "01_getShortUrlClickCount",
             summary = "Get click count for a short URL",
             description = "Returns the total number of clicks for a given short code"
     )
@@ -52,7 +53,8 @@ public class AnalyticsController {
     })
     public ResponseEntity<Long> getShortUrlClickCount(
             @Parameter(description = "The short code to get click count for", required = true)
-            @PathVariable String shortCode) throws UrlNotFoundException {
+            @PathVariable String shortCode
+    ) throws UrlNotFoundException {
         URL url = shortUrlService.resolveShortCode(shortCode);
         Long clickCount = clickAnalyticsService.getClickCountForUrl(url);
         return ResponseEntity.ok(clickCount);
@@ -60,6 +62,7 @@ public class AnalyticsController {
 
     @GetMapping("/{shortCode}/clicks")
     @Operation(
+            operationId = "02_getShortUrlClicks",
             summary = "Get paginated clicks for a short URL",
             description = "Returns a paginated list of all clicks for a given short code with optional sorting"
     )
@@ -67,7 +70,7 @@ public class AnalyticsController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Clicks retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = Page.class))
+                    content = @Content(schema = @Schema(implementation = ClickResponse.class))
             ),
             @ApiResponse(
                     responseCode = "404",

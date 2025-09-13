@@ -34,6 +34,7 @@ public class UrlController {
 
     @GetMapping("/{shortCode}")
     @Operation(
+            operationId = "redirectToUrl",
             summary = "Redirect to original URL",
             description = "Redirects to the original URL associated with the given short code and records the click for analytics"
     )
@@ -52,7 +53,8 @@ public class UrlController {
     public RedirectView redirectToUrl(
             @Parameter(description = "The short code to redirect", required = true)
             @PathVariable String shortCode,
-            HttpServletRequest request) throws UrlNotFoundException {
+            HttpServletRequest request
+    ) throws UrlNotFoundException {
         URL url = shortUrlService.resolveShortCode(shortCode);
 
         // Record the click for analytics
