@@ -1,63 +1,88 @@
-version: '3.8'
+
+# Sankshipt Application - Multi-service Docker Compose Configuration
+# This file defines a microservices architecture with:
+# - MySQL database for data persistence
+# - Auth server for authentication and authorization
+# - API server for main application logic
+# All services are connected via a custom bridge network for secure inter-service communication
 
 services:
 
+  # MySQL Database Service
+  # Provides persistent data storage for both auth and API services
   mysql:
     image: mysql:8.0
     container_name: sankshipt-mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: sankshipt_auth_db
     ports:
-      - "3306:3306"
+      - "3306:3306"  # Expose MySQL on standard port for external access if needed
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - mysql_data:/var/lib/mysql  # Persist database data using named volume
     networks:
       - sankshipt-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 10s       # check every 10 seconds
+      timeout: 10s        # fail a check if it takes longer than 10s
+      retries: 5          # need 5 failures in a row to mark as unhealthy
+      start_period: 30s   # give MySQL 30s grace period before counting failures
 
+  # Authentication Server
+  # Handles user authentication, authorization, and OAuth token management
+  # Creates its own database (sankshipt_auth_db) for user credentials and tokens
   auth-server:
     build:
       context: .
       dockerfile: auth-server/Dockerfile
     container_name: sankshipt-auth
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sankshipt_auth_db
+      # Database connection for auth service - creates separate DB for security isolation
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sankshipt_auth_db?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
+      # OAuth issuer URI - used for token validation by other services
       OAUTH_ISSUER_URI: http://auth-server:9000
     ports:
-      - "9000:9000"
+      - "9000:9000"  # Standard OAuth authorization server port
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy  # Wait for MySQL to be fully ready before starting
     networks:
       - sankshipt-network
 
+  # Main API Server
+  # Provides core application functionality and business logic
+  # Validates OAuth tokens issued by the auth-server for secure API access
   api-server:
     build:
       context: .
       dockerfile: api-server/Dockerfile
     container_name: sankshipt-api
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sankshipt_db
+      # Database connection for main application data
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sankshipt_db?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
+      # Points to auth server for token validation
       OAUTH_ISSUER_URI: http://auth-server:9000
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Standard Spring Boot application port
     depends_on:
-      - auth-server
+      mysql:
+        condition: service_healthy  # Ensure database is ready
+      auth-server:
+        condition: service_started  # Ensure auth server is available for token validation
     networks:
       - sankshipt-network
 
+# Named volume for MySQL data persistence
+# Data survives container restarts and recreations
 volumes:
   mysql_data:
 
+# Custom bridge network for secure inter-service communication
+# Isolates application services from external networks
 networks:
   sankshipt-network:
     driver: bridge
