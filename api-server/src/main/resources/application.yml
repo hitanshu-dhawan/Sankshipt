@@ -3,7 +3,7 @@ spring:
     name: sankshipt-api
 
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/sankshipt_db
+    url: jdbc:mysql://127.0.0.1:3306/sankshipt_db?createDatabaseIfNotExist=true
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
