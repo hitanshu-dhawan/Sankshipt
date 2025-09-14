@@ -1,17 +1,8 @@
 package com.hitanshudhawan.sankshipt.services;
 
 import com.hitanshudhawan.sankshipt.models.User;
-import com.hitanshudhawan.sankshipt.repositories.UserRepository;
-import org.springframework.stereotype.Service;
 
-@Service
-public class UserService {
-
-    private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+public interface UserService {
 
     /**
      * Gets or creates a user by email. This is used when a user creates a URL
@@ -20,13 +11,6 @@ public class UserService {
      * @param email the email of the user
      * @return the User entity
      */
-    public User getOrCreateUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    return userRepository.save(newUser);
-                });
-    }
+    User getOrCreateUser(String email);
 
 }
