@@ -33,9 +33,10 @@ COPY --from=build /app/api-server/target/sankshipt-api-*.jar sankshipt-api.jar
 # Expose port (API server port)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+# Environment variables for database and auth configuration
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/sankshipt_db
+ENV SPRING_DATASOURCE_USERNAME=root
+ENV SPRING_DATASOURCE_PASSWORD=password
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "sankshipt-api.jar"]

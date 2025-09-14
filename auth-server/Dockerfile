@@ -33,9 +33,10 @@ COPY --from=build /app/auth-server/target/sankshipt-auth-*.jar sankshipt-auth.ja
 # Expose port (Auth server port)
 EXPOSE 9000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:9000/actuator/health || exit 1
+# Environment variables for database configuration
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/sankshipt_auth_db
+ENV SPRING_DATASOURCE_USERNAME=root
+ENV SPRING_DATASOURCE_PASSWORD=password
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "sankshipt-auth.jar"]
