@@ -48,6 +48,22 @@ public class ShortCodeGenerator {
             throw new IllegalArgumentException("Invalid short code format");
         }
 
+        // Validate that all characters in the short code are valid (Base62 + hex for checksum)
+        for (int i = 0; i < shortCode.length(); i++) {
+            char ch = shortCode.charAt(i);
+            if (i < shortCode.length() - CHECKSUM_LENGTH) {
+                // Base62 part - must be valid Base62 character
+                if (BASE62_CHARS.indexOf(ch) == -1) {
+                    throw new IllegalArgumentException("Invalid character in short code: " + ch);
+                }
+            } else {
+                // Checksum part - must be valid hex character (0-9, a-f, A-F)
+                if (!((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))) {
+                    throw new IllegalArgumentException("Invalid character in short code checksum: " + ch);
+                }
+            }
+        }
+
         // Extract the Base62 part (everything except the last CHECKSUM_LENGTH characters)
         String base62Part = shortCode.substring(0, shortCode.length() - CHECKSUM_LENGTH);
         
