@@ -4,6 +4,8 @@ import com.hitanshudhawan.sankshipt.dtos.ClickResponse;
 import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.Click;
 import com.hitanshudhawan.sankshipt.models.URL;
+import com.hitanshudhawan.sankshipt.models.User;
+import com.hitanshudhawan.sankshipt.services.AuthenticationService;
 import com.hitanshudhawan.sankshipt.services.ClickAnalyticsService;
 import com.hitanshudhawan.sankshipt.services.ShortUrlService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,26 +27,39 @@ public class AnalyticsController {
 
     private final ShortUrlService shortUrlService;
     private final ClickAnalyticsService clickAnalyticsService;
+    private final AuthenticationService authenticationService;
 
     public AnalyticsController(
             ShortUrlService shortUrlService,
-            ClickAnalyticsService clickAnalyticsService
+            ClickAnalyticsService clickAnalyticsService,
+            AuthenticationService authenticationService
     ) {
         this.shortUrlService = shortUrlService;
         this.clickAnalyticsService = clickAnalyticsService;
+        this.authenticationService = authenticationService;
     }
 
     @GetMapping("/{shortCode}/count")
     @Operation(
             operationId = "01_getShortUrlClickCount",
             summary = "Get click count for a short URL",
-            description = "Returns the total number of clicks for a given short code"
+            description = "Returns the total number of clicks for a given short code. Users can only access analytics for URLs they own."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Click count retrieved successfully",
                     content = @Content(schema = @Schema(implementation = Long.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - User does not own this URL",
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -58,6 +73,13 @@ public class AnalyticsController {
             @PathVariable String shortCode
     ) throws UrlNotFoundException {
         URL url = shortUrlService.resolveShortCode(shortCode);
+        User currentUser = authenticationService.getCurrentUser();
+
+        // Check if the current user owns this URL
+        if (!shortUrlService.isUrlOwner(shortCode, currentUser)) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+
         Long clickCount = clickAnalyticsService.getClickCountForUrl(url);
         return ResponseEntity.ok(clickCount);
     }
@@ -66,13 +88,23 @@ public class AnalyticsController {
     @Operation(
             operationId = "02_getShortUrlClicks",
             summary = "Get paginated clicks for a short URL",
-            description = "Returns a paginated list of all clicks for a given short code with optional sorting"
+            description = "Returns a paginated list of all clicks for a given short code with optional sorting. Users can only access analytics for URLs they own."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Clicks retrieved successfully",
                     content = @Content(schema = @Schema(implementation = ClickResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - User does not own this URL",
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -92,6 +124,13 @@ public class AnalyticsController {
             @RequestParam(value = "sortOrder", required = false) String sortOrder
     ) throws UrlNotFoundException {
         URL url = shortUrlService.resolveShortCode(shortCode);
+        User currentUser = authenticationService.getCurrentUser();
+
+        // Check if the current user owns this URL
+        if (!shortUrlService.isUrlOwner(shortCode, currentUser)) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+
         Page<Click> clicks = clickAnalyticsService.getClicksForUrl(url, pageNumber, pageSize, sortOrder);
         return ResponseEntity.ok(clicks.map(this::convertToClickResponse));
     }

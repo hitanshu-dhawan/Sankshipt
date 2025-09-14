@@ -1,9 +1,6 @@
 package com.hitanshudhawan.sankshipt.models;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
@@ -17,6 +14,10 @@ public class URL extends BaseModel {
 
     @Column(name = "original_url", columnDefinition = "TEXT")
     private String originalUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "url", cascade = CascadeType.ALL)
     private List<Click> clicks;

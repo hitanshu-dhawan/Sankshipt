@@ -5,6 +5,8 @@ import com.hitanshudhawan.sankshipt.dtos.DeleteShortUrlRequest;
 import com.hitanshudhawan.sankshipt.dtos.ShortUrlResponse;
 import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.URL;
+import com.hitanshudhawan.sankshipt.models.User;
+import com.hitanshudhawan.sankshipt.services.AuthenticationService;
 import com.hitanshudhawan.sankshipt.services.ShortUrlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,22 +25,37 @@ import org.springframework.web.bind.annotation.*;
 public class ShortUrlController {
 
     private final ShortUrlService shortUrlService;
+    private final AuthenticationService authenticationService;
 
-    public ShortUrlController(ShortUrlService shortUrlService) {
+    public ShortUrlController(
+            ShortUrlService shortUrlService,
+            AuthenticationService authenticationService
+    ) {
         this.shortUrlService = shortUrlService;
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping
     @Operation(
             operationId = "01_createShortUrl",
             summary = "Create a new short URL",
-            description = "Creates a short URL mapping for the provided original URL"
+            description = "Creates a short URL mapping for the provided original URL. The URL will be owned by the authenticated user."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Short URL created successfully",
                     content = @Content(schema = @Schema(implementation = ShortUrlResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad Request - Invalid input",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required",
+                    content = @Content
             )
     })
     @PreAuthorize("hasAuthority('SCOPE_api.write')")
@@ -51,9 +68,10 @@ public class ShortUrlController {
             @RequestBody @Valid CreateShortUrlRequest createShortUrlRequest
     ) {
         String originalUrl = createShortUrlRequest.getOriginalUrl();
+        User currentUser = authenticationService.getCurrentUser();
 
-        // Create a new short URL mapping
-        URL createdUrl = shortUrlService.createShortUrl(originalUrl);
+        // Create a new short URL mapping with user ownership
+        URL createdUrl = shortUrlService.createShortUrl(originalUrl, currentUser);
 
         // Prepare response with the created URL information
         ShortUrlResponse response = new ShortUrlResponse();
@@ -67,13 +85,28 @@ public class ShortUrlController {
     @Operation(
             operationId = "02_deleteShortUrl",
             summary = "Delete a short URL",
-            description = "Deletes an existing short URL mapping using the short code"
+            description = "Deletes an existing short URL mapping using the short code. Users can only delete URLs they own."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Short URL deleted successfully",
                     content = @Content(schema = @Schema(implementation = ShortUrlResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad Request - Invalid input",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - User does not own this URL",
+                    content = @Content
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -91,12 +124,18 @@ public class ShortUrlController {
             @RequestBody @Valid DeleteShortUrlRequest deleteShortUrlRequest
     ) throws UrlNotFoundException {
         String shortCode = deleteShortUrlRequest.getShortCode();
+        User currentUser = authenticationService.getCurrentUser();
 
         // First, get the URL details before deletion for the response
         URL urlToDelete = shortUrlService.resolveShortCode(shortCode);
 
-        // Delete the URL
-        shortUrlService.deleteShortUrl(shortCode);
+        // Check if the current user owns this URL
+        if (!shortUrlService.isUrlOwner(shortCode, currentUser)) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+
+        // Delete the URL (this will verify ownership again)
+        shortUrlService.deleteShortUrl(shortCode, currentUser);
 
         // Prepare response with the deleted URL information
         ShortUrlResponse response = new ShortUrlResponse();
