@@ -1,0 +1,33 @@
+# Build outputs
+**/target/
+**/*.jar
+**/*.war
+**/*.ear
+
+# IDE files
+.idea/
+**/*.iws
+**/*.iml
+**/*.ipr
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Maven local repository
+.m2/
+
+# Logs
+**/*.log
+
+# Git
+.git/
+.gitignore
+
+# README and docs
+README.md
+**/*.md
+
+# Node modules if any
+**/node_modules/
