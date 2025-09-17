@@ -47,7 +47,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/hitanshu-dhawan/Sankshipt.git
    cd Sankshipt
    ```
 
@@ -209,7 +209,7 @@ Sankshipt tracks detailed click analytics for every shortened URL:
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
   ],
-  "pageable": {...},
+  "pageable": {},
   "totalElements": 42
 }
 ```
@@ -328,7 +328,7 @@ void deleteShortUrl_NotOwner_ShouldReturnForbidden()
 ### 1. Setup Development Environment
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/hitanshu-dhawan/Sankshipt.git
 cd Sankshipt
 
 # Start services
