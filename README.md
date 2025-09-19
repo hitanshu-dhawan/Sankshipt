@@ -332,10 +332,7 @@ git clone https://github.com/hitanshu-dhawan/Sankshipt.git
 cd Sankshipt
 
 # Start services
-docker-compose up -d
-
-# Verify all services are running
-docker-compose ps
+docker-compose up --build
 ```
 
 ### 2. Test Authentication Flow
