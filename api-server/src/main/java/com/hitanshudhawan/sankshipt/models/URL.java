@@ -5,7 +5,11 @@ import lombok.Data;
 
 import java.util.List;
 
-@Entity(name = "urls")
+@Entity
+@Table(name = "urls", indexes = {
+    @Index(name = "idx_short_code", columnList = "short_code", unique = true),
+    @Index(name = "idx_user_id", columnList = "user_id")
+})
 @Data
 public class URL extends BaseModel {
 

@@ -6,7 +6,10 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
-@Entity(name = "clicks")
+@Entity
+@Table(name = "clicks", indexes = {
+    @Index(name = "idx_url", columnList = "url")
+})
 @Data
 public class Click extends BaseModel {
 
