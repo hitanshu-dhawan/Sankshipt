@@ -33,6 +33,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Bean validation framework for request/response validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <!-- Database & JPA Dependencies -->
         <!-- JPA/Hibernate integration for database operations -->
         <dependency>
@@ -81,6 +87,12 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.13</version>
+        </dependency>
+
+        <!-- Actuator for health checks and monitoring -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- Testing Dependencies -->

@@ -50,6 +50,12 @@ services:
         condition: service_healthy  # Wait for MySQL to be fully ready before starting
     networks:
       - sankshipt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # Main API Server
   # Provides core application functionality and business logic
@@ -72,9 +78,15 @@ services:
       mysql:
         condition: service_healthy  # Ensure database is ready
       auth-server:
-        condition: service_started  # Ensure auth server is available for token validation
+        condition: service_healthy  # Ensure auth server is available for token validation
     networks:
       - sankshipt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 # Named volume for MySQL data persistence
 # Data survives container restarts and recreations
