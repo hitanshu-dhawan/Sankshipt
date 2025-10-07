@@ -4,6 +4,8 @@ import com.hitanshudhawan.sankshipt.exceptions.UrlNotFoundException;
 import com.hitanshudhawan.sankshipt.models.URL;
 import com.hitanshudhawan.sankshipt.models.User;
 
+import java.util.List;
+
 public interface ShortUrlService {
 
     /**
@@ -14,6 +16,14 @@ public interface ShortUrlService {
      * @return the created URL entity containing the short code and original URL
      */
     URL createShortUrl(String originalUrl, User user);
+
+    /**
+     * Retrieves all URLs associated with the specified user.
+     *
+     * @param user the user whose URLs are to be retrieved
+     * @return a list of URL entities owned by the user
+     */
+    List<URL> getUrlsForUser(User user);
 
     /**
      * Resolves a short code to retrieve the corresponding URL entity.

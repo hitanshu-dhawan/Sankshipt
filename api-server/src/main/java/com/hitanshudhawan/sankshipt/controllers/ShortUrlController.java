@@ -19,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/urls")
 @Tag(name = "1. URL Management", description = "API for creating and managing short URLs")
@@ -81,9 +84,44 @@ public class ShortUrlController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping
+    @Operation(
+            operationId = "02_getShortUrlsForUser",
+            summary = "Get all short URLs for the current user",
+            description = "Returns a list of all short URLs owned by the authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Short URLs retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = ShortUrlResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Authentication required",
+                    content = @Content
+            )
+    })
+    @PreAuthorize("hasAuthority('SCOPE_api.read')")
+    public ResponseEntity<List<ShortUrlResponse>> getShortUrlsForUser() {
+        User currentUser = authenticationService.getCurrentUser();
+        List<URL> urls = shortUrlService.getUrlsForUser(currentUser);
+
+        List<ShortUrlResponse> response = urls.stream()
+                .map(url -> {
+                    ShortUrlResponse shortUrlResponse = new ShortUrlResponse();
+                    shortUrlResponse.setOriginalUrl(url.getOriginalUrl());
+                    shortUrlResponse.setShortCode(url.getShortCode());
+                    return shortUrlResponse;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping
     @Operation(
-            operationId = "02_deleteShortUrl",
+            operationId = "03_deleteShortUrl",
             summary = "Delete a short URL",
             description = "Deletes an existing short URL mapping using the short code. Users can only delete URLs they own."
     )

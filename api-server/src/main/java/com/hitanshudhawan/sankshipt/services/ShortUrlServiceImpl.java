@@ -7,6 +7,8 @@ import com.hitanshudhawan.sankshipt.repositories.ShortUrlRepository;
 import com.hitanshudhawan.sankshipt.utils.ShortCodeGenerator;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ShortUrlServiceImpl implements ShortUrlService {
 
@@ -31,6 +33,11 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
         // Save again with the generated short code
         return shortUrlRepository.save(savedUrl);
+    }
+
+    @Override
+    public List<URL> getUrlsForUser(User user) {
+        return shortUrlRepository.findAllByUser(user);
     }
 
     @Override
