@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { AUTH_SERVER_URL, OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET } from '../config';
 
+
 const AuthCallback = () => {
 
     // Get current URL location and search params
