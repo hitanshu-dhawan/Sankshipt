@@ -1,17 +1,36 @@
-import { useState } from 'react'
-import './App.css'
-import { Button } from './components/ui/button'
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
-function App() {
-  const [count, setCount] = useState(0)
+import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
+import Dashboard from './pages/Dashboard';
 
+
+// Component that protects routes by checking for an access token in localStorage
+// If token exists, renders child routes via Outlet; otherwise redirects to login page
+const ProtectedRoute = () => {
+  const token = localStorage.getItem('accessToken');
+  return token ? <Outlet /> : <Navigate to="/login" />;
+};
+
+
+const App = () => {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button onClick={() => setCount((count) => count + 1)}>
-        Count is {count}
-      </Button>
-    </div>
-  )
-}
+    <BrowserRouter>
+      <Routes>
 
-export default App
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+
+        <Route path="*" element={<Login />} />
+
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
