@@ -35,7 +35,7 @@ const App = () => {
 
       </Routes>
 
-      <Toaster />
+      <Toaster position="bottom-center" richColors />
 
     </BrowserRouter>
   );
