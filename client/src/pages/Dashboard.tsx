@@ -258,7 +258,7 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
 
             const viewAnalytics = () => {
                 // TODO: Navigate to detailed analytics page
-                toast(`Analytics for ${shortCode}:\nClicks: ${urlData.clicks}\n\nDetailed analytics coming soon!`);
+                toast.error('Analytics page not implemented yet.');
             };
 
             const deleteUrl = async () => {
@@ -448,7 +448,10 @@ const Dashboard = () => {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button onClick={() => { }}>
+                        <Button onClick={() => {
+                            // TODO: Implement URL creation logic
+                            toast.error('URL creation not implemented yet.');
+                        }}>
                             <Plus className="h-4 w-4" />
                             Create URL
                         </Button>
