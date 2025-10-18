@@ -340,42 +340,60 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
 
 const Dashboard = () => {
 
+    // Stores the array of URLs with their click analytics data
     const [urlsData, setUrlsData] = useState<UrlDataWithClicks[]>([]);
+
+    // Tracks whether data is currently being fetched from the API
     const [loading, setLoading] = useState(true);
+
+    // Holds any error message that occurs during data fetching (null when no error)
     const [error, setError] = useState<string | null>(null);
 
-    const fetchUrlsWithClicks = useCallback(async (isRefresh = false) => {
+    /**
+     * Fetches all URLs and their corresponding click analytics
+     * This function combines data from two API endpoints:
+     * 1. /api/urls - Gets all shortened URLs for the user
+     * 2. /api/analytics/{shortCode}/count - Gets click count for each URL
+     */
+    const fetchUrlsWithClicks = useCallback(async () => {
         try {
-
+            // Reset states at the start of data fetching
             setLoading(true);
-
             setError(null);
 
-            // First, fetch all URLs
+            // Fetch all URLs from the main API endpoint
             const urlsResponse = await apiClient.get<UrlData[]>('/api/urls');
             const urls = urlsResponse.data;
 
+            // Validate response format to ensure we received an array
             if (!Array.isArray(urls)) {
-                throw new Error('Invalid response format');
+                throw new Error('Invalid response format - expected array of URLs');
             }
 
-            // Then, fetch click counts for each URL with proper error handling
+            // Fetch click analytics for each URL in parallel
+            // Using Promise.all for better performance than sequential fetching
             const urlsWithClicks: UrlDataWithClicks[] = await Promise.all(
                 urls.map(async (url) => {
                     try {
+                        // Attempt to fetch click count for this specific URL
                         const analyticsResponse = await apiClient.get<number>(
                             `/api/analytics/${url.shortCode}/count`
                         );
+
+                        // Ensure we have a valid number, default to 0 if not
                         const clicks = typeof analyticsResponse.data === 'number'
                             ? analyticsResponse.data
                             : 0;
 
+                        // Combine original URL data with click analytics
                         return {
                             ...url,
                             clicks
                         };
                     } catch (analyticsError) {
-                        console.warn(`Failed to fetch analytics for ${url.shortCode}:`, analyticsError);
+                        // If analytics fetch fails, log warning but continue with 0 clicks
+                        // This ensures the dashboard still works even if analytics service is down
+                        console.error(`Failed to fetch analytics for ${url.shortCode}:`, analyticsError);
                         return {
                             ...url,
                             clicks: 0
@@ -384,39 +402,47 @@ const Dashboard = () => {
                 })
             );
 
+            // Update state with the combined data
             setUrlsData(urlsWithClicks);
         } catch (error) {
+            // Handle any errors that occurred during the main URL fetching
             console.error('Error fetching URLs:', error);
             setError(error instanceof Error ? error.message : 'Failed to load URLs data');
         } finally {
+            // Always set loading to false when done, regardless of success or failure
             setLoading(false);
         }
     }, []);
 
+    // Fetch data when component mounts
     useEffect(() => {
         fetchUrlsWithClicks();
     }, [fetchUrlsWithClicks]);
 
+    // Loading state - show spinner while data is being fetched
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="flex flex-col items-center gap-4">
-                    <Spinner className="h-8 w-8" />
+                    <Spinner className="size-8" />
                     <p className="text-muted-foreground">Loading dashboard...</p>
                 </div>
             </div>
         );
     }
 
+    // Error state - show error message with retry option
     if (error) {
         return (
-            <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="flex items-center justify-center min-h-screen">
                 <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle className="text-destructive">Error</CardTitle>
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-destructive">Something went wrong!</CardTitle>
+                        <p className="text-muted-foreground text-sm mt-2">
+                            {error}
+                        </p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p>{error}</p>
+                    <CardContent>
                         <Button onClick={() => fetchUrlsWithClicks()} className="w-full">
                             Try Again
                         </Button>
@@ -426,48 +452,41 @@ const Dashboard = () => {
         );
     }
 
+    // Main dashboard layout
     return (
-        <div className="container mx-auto py-10 px-4">
+        <div className="container mx-auto py-8 px-4">
             <div className="space-y-6">
+
+                {/* Dashboard header with title and action buttons */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">URL Dashboard</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="text-3xl font-bold">Sankshipt Dashboard</h1>
+                        <p className="text-muted-foreground mt-2">
                             Manage and monitor your shortened URLs ({urlsData.length} total)
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" />
+                        <Button onClick={() => { }}>
+                            <Plus className="h-4 w-4" />
                             Create URL
                         </Button>
                     </div>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your URLs</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {urlsData.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <div className="text-muted-foreground space-y-2">
-                                    <p className="text-lg">No URLs found</p>
-                                    <p className="text-sm">Create your first shortened URL to get started</p>
-                                </div>
-                                <Button className="mt-4">
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Create Your First URL
-                                </Button>
-                            </div>
-                        ) : (
-                            <DataTable
-                                columns={columns}
-                                data={urlsData}
-                            />
-                        )}
-                    </CardContent>
-                </Card>
+                {/* Main content area - either empty state or data table */}
+                {urlsData.length === 0 ? (
+                    // Empty state when no URLs exist
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <p className="text-muted-foreground">No URLs found</p>
+                    </div>
+                ) : (
+                    // Data table showing all URLs when data exists
+                    <DataTable
+                        columns={columns}
+                        data={urlsData}
+                    />
+                )}
+
             </div>
         </div>
     );
