@@ -1,27 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import apiClient from '../api/api-client';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Spinner } from '../components/ui/spinner';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '../components/ui/table';
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+
+// Core utilities and types for building data tables (TanStack Table)
 import {
     type ColumnDef,
     type ColumnFiltersState,
@@ -34,19 +12,63 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
+
+// Icon components from the 'lucide-react' library
 import {
-    RefreshCw,
     Plus,
-    ChevronDownIcon,
-    ArrowUpDown,
+    ArrowDownUp,
+    EllipsisVertical,
     Copy,
-    MoreHorizontal,
-    Trash2,
-    BarChart3,
-    ExternalLink
+    ChartNoAxesCombined,
+    Trash2
 } from 'lucide-react';
 
-// Type definitions
+// UI component for displaying badges or tags
+import { Badge } from '../components/ui/badge';
+
+// UI component for interactive buttons
+import { Button } from '../components/ui/button';
+
+// UI components for displaying content in a card container
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+
+// UI components for building dropdown menus
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+
+// UI component for indicating loading (spinner)
+import { Spinner } from '../components/ui/spinner';
+
+// UI components for structuring data tables
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '../components/ui/table';
+
+// React hooks for state and lifecycle management
+import { useState, useEffect, useCallback } from 'react';
+
+// Toast notification library
+import { toast } from "sonner";
+
+// API client for making HTTP requests
+import apiClient from '../api/api-client';
+
+// Configuration constants
+import { API_SERVER_URL } from '../config';
+
+
+// #region Type Definitions
+
 interface UrlData {
     originalUrl: string;
     shortCode: string;
@@ -56,20 +78,21 @@ interface UrlDataWithClicks extends UrlData {
     clicks: number;
 }
 
-// DataTable component
+// #endregion
+
+
+// #region DataTable Component
+
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
-    searchKey?: string
-    searchPlaceholder?: string
 }
 
 function DataTable<TData, TValue>({
     columns,
     data,
-    searchKey,
-    searchPlaceholder = "Filter...",
 }: DataTableProps<TData, TValue>) {
+
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -95,149 +118,81 @@ function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="w-full">
-            <div className="flex items-center py-4">
-                {searchKey && (
-                    <Input
-                        placeholder={searchPlaceholder}
-                        value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-                        }
-                        className="max-w-sm"
-                    />
-                )}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => {
+        <div className="overflow-hidden rounded-md border">
+            <Table>
+                <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
                                 return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.id}
-                                    </DropdownMenuCheckboxItem>
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </TableHead>
                                 )
                             })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
+                        </TableRow>
+                    ))}
+                </TableHeader>
+                <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                            >
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell key={cell.id}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                ))}
                             </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    No results.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
-                </div>
-                <div className="space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
-                </div>
-            </div>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={columns.length} className="h-24 text-center">
+                                No results.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
         </div>
     )
 }
 
-// Table columns definition
+// #endregion
+
+
+// #region Table Columns Definition
+
 const columns: ColumnDef<UrlDataWithClicks>[] = [
     {
         accessorKey: "shortCode",
-        header: ({ column }) => {
+        header: () => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
+                <Button variant="ghost">
                     Short Code
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
         cell: ({ row }) => {
             const shortCode = row.getValue("shortCode") as string
-            const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-            const shortUrl = `${baseUrl}/${shortCode}`
+            const shortUrl = `${API_SERVER_URL}/${shortCode}`
 
             return (
                 <div className="space-y-1">
-                    <div className="font-mono font-medium text-primary">
+                    <div className="font-mono">
                         {shortCode}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[200px]" title={shortUrl}>
+                    <div
+                        className="text-xs text-muted-foreground cursor-pointer hover:text-primary hover:underline"
+                        title={shortUrl}
+                        onClick={() => window.open(shortUrl, '_blank')}>
                         {shortUrl}
                     </div>
                 </div>
@@ -250,32 +205,25 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
             return (
                 <Button
                     variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
                     Original URL
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowDownUp className="h-4 w-4" />
                 </Button>
             )
         },
         cell: ({ row }) => {
             const url = row.getValue("originalUrl") as string
-            const truncatedUrl = url.length > 60 ? `${url.substring(0, 60)}...` : url
-
-            // Extract domain for better display
-            let domain = '';
-            try {
-                domain = new URL(url).hostname;
-            } catch {
-                domain = url;
-            }
 
             return (
-                <div className="max-w-[400px]">
-                    <div className="truncate font-medium" title={url}>
-                        {truncatedUrl}
+                <div className="space-y-1">
+                    <div
+                        className="cursor-pointer hover:text-primary hover:underline"
+                        title={url}
+                        onClick={() => window.open(url, '_blank')}>
+                        {url.length > 60 ? `${url.substring(0, 60)}...` : url}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                        {domain}
+                    <div className="text-xs text-muted-foreground">
+                        {URL.canParse?.(url) ? new URL(url).hostname : url.split('/')[0] || url}
                     </div>
                 </div>
             )
@@ -285,135 +233,122 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
         accessorKey: "clicks",
         header: ({ column }) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Clicks
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                        Clicks
+                        <ArrowDownUp className="h-4 w-4" />
+                    </Button>
+                </div>
             )
         },
         cell: ({ row }) => {
             const clicks = row.getValue("clicks") as number
+
             return (
-                <Badge variant={clicks > 0 ? "default" : "secondary"}>
-                    {clicks}
-                </Badge>
+                <div className="flex justify-center">
+                    <Badge variant="outline">
+                        {clicks}
+                    </Badge>
+                </div>
             )
         },
     },
     {
         id: "actions",
-        enableHiding: false,
         cell: ({ row }) => {
+
             const urlData = row.original
-            const baseUrl = window.location.origin
-            const shortUrl = `${baseUrl}/${urlData.shortCode}`
+            const shortCode = urlData.shortCode
+            const shortUrl = `${API_SERVER_URL}/${shortCode}`
+            const originalUrl = urlData.originalUrl
 
             const copyToClipboard = async (text: string) => {
                 try {
                     await navigator.clipboard.writeText(text)
-                    alert('Copied to clipboard!')
+                    toast.success('Copied to clipboard!')
                 } catch (err) {
                     console.error('Failed to copy: ', err)
-                    // Fallback for older browsers
-                    const textArea = document.createElement('textarea')
-                    textArea.value = text
-                    document.body.appendChild(textArea)
-                    textArea.select()
-                    document.execCommand('copy')
-                    document.body.removeChild(textArea)
-                    alert('Copied to clipboard!')
+                    toast.error('Failed to copy to clipboard.')
                 }
             }
-
-            const openOriginalUrl = () => {
-                window.open(urlData.originalUrl, '_blank')
-            }
-
-            const deleteUrl = async () => {
-                const confirmDelete = window.confirm(
-                    `Are you sure you want to delete the URL with short code "${urlData.shortCode}"?\n\nThis action cannot be undone.`
-                );
-
-                if (confirmDelete) {
-                    try {
-                        // TODO: Implement actual delete API call
-                        // await apiClient.delete(`/api/urls/${urlData.shortCode}`);
-                        console.log('Delete URL:', urlData.shortCode);
-                        alert('URL deleted successfully! (This is a placeholder - implement actual deletion)');
-                        // TODO: Refresh the data after deletion
-                    } catch (error) {
-                        console.error('Failed to delete URL:', error);
-                        alert('Failed to delete URL. Please try again.');
-                    }
-                }
-            };
 
             const viewAnalytics = () => {
-                alert(`Analytics for ${urlData.shortCode}:\nClicks: ${urlData.clicks}\n\nDetailed analytics coming soon!`);
+                // TODO: Navigate to detailed analytics page
+                toast(`Analytics for ${shortCode}:\nClicks: ${urlData.clicks}\n\nDetailed analytics coming soon!`);
+            };
+
+            const deleteUrl = async () => {
+                // TODO: Implement URL deletion logic
+                toast.error('URL deletion not implemented yet.');
             };
 
             return (
                 <DropdownMenu>
+
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
+                        <Button variant="ghost" className="h-8 w-8">
+                            <EllipsisVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => copyToClipboard(shortUrl)}
-                        >
+
+                        {/* Copy short URL */}
+                        <DropdownMenuItem onClick={() => copyToClipboard(shortUrl)}>
                             <Copy className="mr-2 h-4 w-4" />
                             Copy short URL
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => copyToClipboard(urlData.originalUrl)}
-                        >
+
+                        {/* Copy original URL */}
+                        <DropdownMenuItem onClick={() => copyToClipboard(originalUrl)}>
                             <Copy className="mr-2 h-4 w-4" />
                             Copy original URL
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={openOriginalUrl}>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open original URL
-                        </DropdownMenuItem>
+
+                        {/* View analytics */}
                         <DropdownMenuItem onClick={viewAnalytics}>
-                            <BarChart3 className="mr-2 h-4 w-4" />
+                            <ChartNoAxesCombined className="mr-2 h-4 w-4" />
                             View analytics
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
+
+                        {/* Delete URL */}
                         <DropdownMenuItem
                             onClick={deleteUrl}
-                            variant="destructive"
-                        >
+                            variant="destructive">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                         </DropdownMenuItem>
+
                     </DropdownMenuContent>
+
                 </DropdownMenu>
             )
         },
     },
 ];
 
+// #endregion
+
+
+// #region Dashboard Component
+
 const Dashboard = () => {
+
     const [urlsData, setUrlsData] = useState<UrlDataWithClicks[]>([]);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchUrlsWithClicks = useCallback(async (isRefresh = false) => {
         try {
-            if (isRefresh) {
-                setRefreshing(true);
-            } else {
-                setLoading(true);
-            }
+
+            setLoading(true);
+
             setError(null);
 
             // First, fetch all URLs
@@ -455,17 +390,12 @@ const Dashboard = () => {
             setError(error instanceof Error ? error.message : 'Failed to load URLs data');
         } finally {
             setLoading(false);
-            setRefreshing(false);
         }
     }, []);
 
     useEffect(() => {
         fetchUrlsWithClicks();
     }, [fetchUrlsWithClicks]);
-
-    const handleRefresh = () => {
-        fetchUrlsWithClicks(true);
-    };
 
     if (loading) {
         return (
@@ -507,14 +437,6 @@ const Dashboard = () => {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                        >
-                            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                            {refreshing ? 'Refreshing...' : 'Refresh'}
-                        </Button>
                         <Button>
                             <Plus className="mr-2 h-4 w-4" />
                             Create URL
@@ -542,8 +464,6 @@ const Dashboard = () => {
                             <DataTable
                                 columns={columns}
                                 data={urlsData}
-                                searchKey="originalUrl"
-                                searchPlaceholder="Search URLs..."
                             />
                         )}
                     </CardContent>
@@ -552,5 +472,8 @@ const Dashboard = () => {
         </div>
     );
 };
+
+// #endregion
+
 
 export default Dashboard;
