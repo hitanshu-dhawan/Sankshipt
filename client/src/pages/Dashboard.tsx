@@ -2,13 +2,9 @@
 // Core utilities and types for building data tables (TanStack Table)
 import {
     type ColumnDef,
-    type ColumnFiltersState,
     type SortingState,
-    type VisibilityState,
     flexRender,
     getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
@@ -94,26 +90,15 @@ function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = useState({})
 
     const table = useReactTable({
         data,
         columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
+        onSortingChange: setSorting,
         state: {
             sorting,
-            columnFilters,
-            columnVisibility,
-            rowSelection,
         },
     })
 
@@ -141,10 +126,7 @@ function DataTable<TData, TValue>({
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
-                            <TableRow
-                                key={row.id}
-                                data-state={row.getIsSelected() && "selected"}
-                            >
+                            <TableRow key={row.id}>
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell key={cell.id}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -402,8 +384,8 @@ const Dashboard = () => {
                 })
             );
 
-            // Update state with the combined data
-            setUrlsData(urlsWithClicks);
+            // Update state with the combined data, reversed to show latest URLs first
+            setUrlsData(urlsWithClicks.reverse());
         } catch (error) {
             // Handle any errors that occurred during the main URL fetching
             console.error('Error fetching URLs:', error);
