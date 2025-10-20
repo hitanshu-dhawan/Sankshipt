@@ -39,6 +39,19 @@ import {
     DialogTrigger,
 } from '../components/ui/dialog';
 
+// UI components for building alert dialogs (confirmations)
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '../components/ui/alert-dialog';
+
 // UI components for building dropdown menus
 import {
     DropdownMenu,
@@ -167,7 +180,7 @@ function DataTable<TData, TValue>({
 
 // #region Table Columns Definition
 
-const columns: ColumnDef<UrlDataWithClicks>[] = [
+const createColumns = (onUrlDeleted: (shortCode: string) => void): ColumnDef<UrlDataWithClicks>[] => [
     {
         accessorKey: "shortCode",
         header: () => {
@@ -276,11 +289,6 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
                 toast.error('Analytics page not implemented yet.');
             };
 
-            const deleteUrl = async () => {
-                // TODO: Implement URL deletion logic
-                toast.error('URL deletion not implemented yet.');
-            };
-
             return (
                 <DropdownMenu>
 
@@ -315,12 +323,14 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
                         <DropdownMenuSeparator />
 
                         {/* Delete URL */}
-                        <DropdownMenuItem
-                            onClick={deleteUrl}
-                            variant="destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
+                        <DeleteUrlDialog urlData={urlData} onUrlDeleted={onUrlDeleted}>
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DeleteUrlDialog>
 
                     </DropdownMenuContent>
 
@@ -472,6 +482,134 @@ const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
 // #endregion
 
 
+// #region DeleteUrlDialog Component
+
+interface DeleteUrlDialogProps {
+    /**
+     * The URL data to be deleted
+     */
+    urlData: UrlDataWithClicks;
+
+    /**
+     * The trigger element that will open the dialog when clicked.
+     * Can be any React element such as Button, MenuItem, etc.
+     */
+    children: React.ReactNode;
+
+    /**
+     * Callback function called when a URL is successfully deleted.
+     * Receives the short code of the deleted URL.
+     * Used to update the parent component's state and refresh the URL list.
+     * 
+     * @param shortCode - The short code of the deleted URL
+     */
+    onUrlDeleted: (shortCode: string) => void;
+}
+
+const DeleteUrlDialog = ({ urlData, children, onUrlDeleted }: DeleteUrlDialogProps) => {
+
+    // State for managing dialog open/close
+    const [open, setOpen] = useState(false);
+
+    // State for tracking deletion status
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const shortUrl = `${API_SERVER_URL}/${urlData.shortCode}`;
+
+    /**
+     * Handles the deletion of the URL
+     */
+    const handleDelete = async () => {
+        try {
+            setIsDeleting(true);
+
+            // Make API call to delete the URL
+            await apiClient.delete('/api/urls', {
+                data: {
+                    shortCode: urlData.shortCode
+                }
+            });
+
+            // Notify parent component of URL deletion
+            onUrlDeleted(urlData.shortCode);
+
+            // Close dialog
+            setOpen(false);
+
+            // Show success message
+            toast.success('URL deleted successfully!');
+
+        } catch (error) {
+            console.error('Error deleting URL:', error);
+            toast.error('Failed to delete URL. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    return (
+        <AlertDialog open={open} onOpenChange={setOpen}>
+
+            <AlertDialogTrigger asChild>
+                {children}
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete URL</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete this shortened URL? This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                {/* URL Information Display */}
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <div className="text-sm font-medium">Short URL:</div>
+                        <div className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                            {shortUrl}
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="text-sm font-medium">Original URL:</div>
+                        <div className="text-sm text-muted-foreground bg-muted p-2 rounded break-all">
+                            {urlData.originalUrl}
+                        </div>
+                    </div>
+                </div>
+
+                <AlertDialogFooter>
+
+                    <AlertDialogCancel disabled={isDeleting}>
+                        Cancel
+                    </AlertDialogCancel>
+
+                    <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {isDeleting ? (
+                            <>
+                                <Spinner className="h-4 w-4" />
+                                Deleting...
+                            </>
+                        ) : (
+                            'Delete URL'
+                        )}
+                    </AlertDialogAction>
+
+                </AlertDialogFooter>
+
+            </AlertDialogContent>
+
+        </AlertDialog>
+    );
+};
+
+// #endregion
+
+
 // #region Dashboard Component
 
 const Dashboard = () => {
@@ -494,6 +632,19 @@ const Dashboard = () => {
         // Add the new URL to the beginning of the array (most recent first)
         setUrlsData(prevUrls => [newUrl, ...prevUrls]);
     }, []);
+
+    /**
+     * Handles removing a deleted URL from the existing data
+     * This function is called when a URL is successfully deleted
+     * @param shortCode - The short code of the deleted URL
+     */
+    const handleUrlDeleted = useCallback((shortCode: string) => {
+        // Remove the URL with the matching short code from the array
+        setUrlsData(prevUrls => prevUrls.filter(url => url.shortCode !== shortCode));
+    }, []);
+
+    // Create columns with delete handler
+    const columns = createColumns(handleUrlDeleted);
 
     /**
      * Fetches all URLs and their corresponding click analytics
