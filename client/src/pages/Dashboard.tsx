@@ -410,11 +410,13 @@ const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
+
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
 
             <DialogContent className="sm:max-w-md">
+
                 <DialogHeader>
                     <DialogTitle>Create Short URL</DialogTitle>
                     <DialogDescription>
@@ -423,6 +425,7 @@ const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+
                     <div className="space-y-2">
                         <Label htmlFor="originalUrl">Original URL</Label>
                         <Input
@@ -441,14 +444,12 @@ const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
                             type="button"
                             variant="outline"
                             onClick={() => setOpen(false)}
-                            disabled={isSubmitting}
-                        >
+                            disabled={isSubmitting}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isSubmitting || !originalUrl.trim()}
-                        >
+                            disabled={isSubmitting || !originalUrl.trim()}>
                             {isSubmitting ? (
                                 <>
                                     <Spinner className="h-4 w-4" />
@@ -459,8 +460,11 @@ const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
                             )}
                         </Button>
                     </DialogFooter>
+
                 </form>
+
             </DialogContent>
+
         </Dialog>
     );
 };
