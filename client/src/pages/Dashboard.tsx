@@ -28,6 +28,17 @@ import { Button } from '../components/ui/button';
 // UI components for displaying content in a card container
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 
+// UI components for building dialog modals
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '../components/ui/dialog';
+
 // UI components for building dropdown menus
 import {
     DropdownMenu,
@@ -36,6 +47,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+
+// UI components for form inputs
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 // UI component for indicating loading (spinner)
 import { Spinner } from '../components/ui/spinner';
@@ -318,6 +333,141 @@ const columns: ColumnDef<UrlDataWithClicks>[] = [
 // #endregion
 
 
+// #region CreateUrlDialog Component
+
+interface CreateUrlDialogProps {
+    /**
+     * The trigger element that will open the dialog when clicked.
+     * Can be any React element such as Button, Link, Icon, or custom component.
+     * This element will be wrapped with DialogTrigger to handle dialog opening.
+     */
+    children: React.ReactNode;
+
+    /**
+     * Callback function called when a new URL is successfully created.
+     * Receives the newly created URL data including shortCode, originalUrl, and clicks (set to 0).
+     * Used to update the parent component's state and refresh the URL list.
+     * 
+     * @param newUrl - The newly created URL data with initial click count of 0
+     */
+    onUrlCreated: (newUrl: UrlDataWithClicks) => void;
+}
+
+const CreateUrlDialog = ({ children, onUrlCreated }: CreateUrlDialogProps) => {
+
+    // State for managing dialog open/close
+    const [open, setOpen] = useState(false);
+
+    // State for form input
+    const [originalUrl, setOriginalUrl] = useState('');
+
+    // State for tracking submission status
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    /**
+     * Handles form submission to create a new shortened URL
+     */
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Validate input
+        if (!originalUrl.trim()) {
+            toast.error('Please enter a valid URL');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+
+            // Make API call to create shortened URL
+            const response = await apiClient.post<UrlData>('/api/urls', {
+                originalUrl: originalUrl.trim()
+            });
+
+            // Create new URL data with initial click count of 0
+            const newUrlData: UrlDataWithClicks = {
+                ...response.data,
+                clicks: 0
+            };
+
+            // Notify parent component of new URL creation
+            onUrlCreated(newUrlData);
+
+            // Reset form and close dialog
+            setOriginalUrl('');
+            setOpen(false);
+
+            // Show success message
+            toast.success('URL shortened successfully!');
+
+        } catch (error) {
+            console.error('Error creating URL:', error);
+            toast.error('Failed to create shortened URL. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Create Short URL</DialogTitle>
+                    <DialogDescription>
+                        Enter the URL you want to shorten. We'll generate a short code for easy sharing.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="originalUrl">Original URL</Label>
+                        <Input
+                            id="originalUrl"
+                            type="url"
+                            placeholder="https://example.com"
+                            value={originalUrl}
+                            onChange={(e) => setOriginalUrl(e.target.value)}
+                            disabled={isSubmitting}
+                            required
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !originalUrl.trim()}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Spinner className="h-4 w-4" />
+                                    Creating...
+                                </>
+                            ) : (
+                                'Create Short URL'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+// #endregion
+
+
 // #region Dashboard Component
 
 const Dashboard = () => {
@@ -330,6 +480,16 @@ const Dashboard = () => {
 
     // Holds any error message that occurs during data fetching (null when no error)
     const [error, setError] = useState<string | null>(null);
+
+    /**
+     * Handles adding a newly created URL to the existing data
+     * This function is called when a new URL is successfully created via the dialog
+     * @param newUrl - The newly created URL data with clicks initialized to 0
+     */
+    const handleUrlCreated = useCallback((newUrl: UrlDataWithClicks) => {
+        // Add the new URL to the beginning of the array (most recent first)
+        setUrlsData(prevUrls => [newUrl, ...prevUrls]);
+    }, []);
 
     /**
      * Fetches all URLs and their corresponding click analytics
@@ -447,15 +607,12 @@ const Dashboard = () => {
                             Manage and monitor your shortened URLs ({urlsData.length} total)
                         </p>
                     </div>
-                    <div className="flex gap-2">
-                        <Button onClick={() => {
-                            // TODO: Implement URL creation logic
-                            toast.error('URL creation not implemented yet.');
-                        }}>
+                    <CreateUrlDialog onUrlCreated={handleUrlCreated}>
+                        <Button>
                             <Plus className="h-4 w-4" />
                             Create URL
                         </Button>
-                    </div>
+                    </CreateUrlDialog>
                 </div>
 
                 {/* Main content area - either empty state or data table */}
