@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 
 import { Toaster } from "@/components/ui/sonner"
 
@@ -28,7 +29,9 @@ const App = () => {
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/analytics/:shortCode" element={<Analytics />} />
         </Route>
 
         <Route path="*" element={<Login />} />
