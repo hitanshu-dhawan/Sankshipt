@@ -81,6 +81,9 @@ import {
 // React hooks for state and lifecycle management
 import { useState, useEffect, useCallback } from 'react';
 
+// React Router for navigation
+import { useNavigate } from 'react-router-dom';
+
 // Toast notification library
 import { toast } from "sonner";
 
@@ -180,165 +183,163 @@ function DataTable<TData, TValue>({
 
 // #region Table Columns Definition
 
-const createColumns = (onUrlDeleted: (shortCode: string) => void): ColumnDef<UrlDataWithClicks>[] => [
-    {
-        accessorKey: "shortCode",
-        header: () => {
-            return (
-                <Button variant="ghost">
-                    Short Code
-                </Button>
-            )
-        },
-        cell: ({ row }) => {
-            const shortCode = row.getValue("shortCode") as string
-            const shortUrl = `${API_SERVER_URL}/${shortCode}`
+const createColumns = (
+    onViewAnalytics: (shortCode: string) => void,
+    onUrlDeleted: (shortCode: string) => void
+): ColumnDef<UrlDataWithClicks>[] => [
+        {
+            accessorKey: "shortCode",
+            header: () => {
+                return (
+                    <Button variant="ghost">
+                        Short Code
+                    </Button>
+                )
+            },
+            cell: ({ row }) => {
+                const shortCode = row.getValue("shortCode") as string
+                const shortUrl = `${API_SERVER_URL}/${shortCode}`
 
-            return (
-                <div className="space-y-1">
-                    <div className="font-mono">
-                        {shortCode}
+                return (
+                    <div className="space-y-1">
+                        <div className="font-mono">
+                            {shortCode}
+                        </div>
+                        <div
+                            className="text-xs text-muted-foreground cursor-pointer hover:text-primary hover:underline"
+                            title={shortUrl}
+                            onClick={() => window.open(shortUrl, '_blank')}>
+                            {shortUrl}
+                        </div>
                     </div>
-                    <div
-                        className="text-xs text-muted-foreground cursor-pointer hover:text-primary hover:underline"
-                        title={shortUrl}
-                        onClick={() => window.open(shortUrl, '_blank')}>
-                        {shortUrl}
-                    </div>
-                </div>
-            )
+                )
+            },
         },
-    },
-    {
-        accessorKey: "originalUrl",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                    Original URL
-                    <ArrowDownUp className="h-4 w-4" />
-                </Button>
-            )
-        },
-        cell: ({ row }) => {
-            const url = row.getValue("originalUrl") as string
-
-            return (
-                <div className="space-y-1">
-                    <div
-                        className="cursor-pointer hover:text-primary hover:underline"
-                        title={url}
-                        onClick={() => window.open(url, '_blank')}>
-                        {url.length > 60 ? `${url.substring(0, 60)}...` : url}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                        {URL.canParse?.(url) ? new URL(url).hostname : url.split('/')[0] || url}
-                    </div>
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "clicks",
-        header: ({ column }) => {
-            return (
-                <div className="flex justify-center">
+        {
+            accessorKey: "originalUrl",
+            header: ({ column }) => {
+                return (
                     <Button
                         variant="ghost"
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                        Clicks
+                        Original URL
                         <ArrowDownUp className="h-4 w-4" />
                     </Button>
-                </div>
-            )
+                )
+            },
+            cell: ({ row }) => {
+                const url = row.getValue("originalUrl") as string
+
+                return (
+                    <div className="space-y-1">
+                        <div
+                            className="cursor-pointer hover:text-primary hover:underline"
+                            title={url}
+                            onClick={() => window.open(url, '_blank')}>
+                            {url.length > 60 ? `${url.substring(0, 60)}...` : url}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            {URL.canParse?.(url) ? new URL(url).hostname : url.split('/')[0] || url}
+                        </div>
+                    </div>
+                )
+            },
         },
-        cell: ({ row }) => {
-            const clicks = row.getValue("clicks") as number
-
-            return (
-                <div className="flex justify-center">
-                    <Badge variant="outline">
-                        {clicks}
-                    </Badge>
-                </div>
-            )
-        },
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-
-            const urlData = row.original
-            const shortCode = urlData.shortCode
-            const shortUrl = `${API_SERVER_URL}/${shortCode}`
-            const originalUrl = urlData.originalUrl
-
-            const copyToClipboard = async (text: string) => {
-                try {
-                    await navigator.clipboard.writeText(text)
-                    toast.success('Copied to clipboard!')
-                } catch (err) {
-                    console.error('Failed to copy: ', err)
-                    toast.error('Failed to copy to clipboard.')
-                }
-            }
-
-            const viewAnalytics = () => {
-                // TODO: Navigate to detailed analytics page
-                toast.error('Analytics page not implemented yet.');
-            };
-
-            return (
-                <DropdownMenu>
-
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8">
-                            <EllipsisVertical className="h-4 w-4" />
+        {
+            accessorKey: "clicks",
+            header: ({ column }) => {
+                return (
+                    <div className="flex justify-center">
+                        <Button
+                            variant="ghost"
+                            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                            Clicks
+                            <ArrowDownUp className="h-4 w-4" />
                         </Button>
-                    </DropdownMenuTrigger>
+                    </div>
+                )
+            },
+            cell: ({ row }) => {
+                const clicks = row.getValue("clicks") as number
 
-                    <DropdownMenuContent align="end">
-
-                        {/* Copy short URL */}
-                        <DropdownMenuItem onClick={() => copyToClipboard(shortUrl)}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy short URL
-                        </DropdownMenuItem>
-
-                        {/* Copy original URL */}
-                        <DropdownMenuItem onClick={() => copyToClipboard(originalUrl)}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy original URL
-                        </DropdownMenuItem>
-
-                        <DropdownMenuSeparator />
-
-                        {/* View analytics */}
-                        <DropdownMenuItem onClick={viewAnalytics}>
-                            <ChartNoAxesCombined className="mr-2 h-4 w-4" />
-                            View analytics
-                        </DropdownMenuItem>
-
-                        <DropdownMenuSeparator />
-
-                        {/* Delete URL */}
-                        <DeleteUrlDialog urlData={urlData} onUrlDeleted={onUrlDeleted}>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DeleteUrlDialog>
-
-                    </DropdownMenuContent>
-
-                </DropdownMenu>
-            )
+                return (
+                    <div className="flex justify-center">
+                        <Badge variant="outline">
+                            {clicks}
+                        </Badge>
+                    </div>
+                )
+            },
         },
-    },
-];
+        {
+            id: "actions",
+            cell: ({ row }) => {
+
+                const urlData = row.original
+                const shortCode = urlData.shortCode
+                const shortUrl = `${API_SERVER_URL}/${shortCode}`
+                const originalUrl = urlData.originalUrl
+
+                const copyToClipboard = async (text: string) => {
+                    try {
+                        await navigator.clipboard.writeText(text)
+                        toast.success('Copied to clipboard!')
+                    } catch (err) {
+                        console.error('Failed to copy: ', err)
+                        toast.error('Failed to copy to clipboard.')
+                    }
+                }
+
+                return (
+                    <DropdownMenu>
+
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8">
+                                <EllipsisVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+
+                            {/* Copy short URL */}
+                            <DropdownMenuItem onClick={() => copyToClipboard(shortUrl)}>
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy short URL
+                            </DropdownMenuItem>
+
+                            {/* Copy original URL */}
+                            <DropdownMenuItem onClick={() => copyToClipboard(originalUrl)}>
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy original URL
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            {/* View analytics */}
+                            <DropdownMenuItem onClick={() => onViewAnalytics(shortCode)}>
+                                <ChartNoAxesCombined className="mr-2 h-4 w-4" />
+                                View analytics
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            {/* Delete URL */}
+                            <DeleteUrlDialog urlData={urlData} onUrlDeleted={onUrlDeleted}>
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DeleteUrlDialog>
+
+                        </DropdownMenuContent>
+
+                    </DropdownMenu>
+                )
+            },
+        },
+    ];
 
 // #endregion
 
@@ -623,6 +624,9 @@ const Dashboard = () => {
     // Holds any error message that occurs during data fetching (null when no error)
     const [error, setError] = useState<string | null>(null);
 
+    // Navigation hook
+    const navigate = useNavigate();
+
     /**
      * Handles adding a newly created URL to the existing data
      * This function is called when a new URL is successfully created via the dialog
@@ -643,8 +647,18 @@ const Dashboard = () => {
         setUrlsData(prevUrls => prevUrls.filter(url => url.shortCode !== shortCode));
     }, []);
 
-    // Create columns with delete handler
-    const columns = createColumns(handleUrlDeleted);
+    /**
+     * Handles navigation to analytics page for a specific URL
+     * This function is called when user clicks "View Analytics" for a URL
+     * @param shortCode - The short code of the URL to view analytics for
+     */
+    const handleViewAnalytics = useCallback((shortCode: string) => {
+        // Navigate to analytics page with the shortCode using React Router
+        navigate(`/analytics/${shortCode}`);
+    }, [navigate]);
+
+    // Create columns with handlers
+    const columns = createColumns(handleViewAnalytics, handleUrlDeleted);
 
     /**
      * Fetches all URLs and their corresponding click analytics
