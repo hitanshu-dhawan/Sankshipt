@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,6 +35,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,13 +68,15 @@ public class AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:8080/swagger-ui/oauth2-redirect.html")
-                .redirectUri("https://oauth.pstmn.io/v1/callback")
+                .redirectUri("http://localhost:8080/swagger-ui/oauth2-redirect.html") // Swagger UI OAuth2 testing
+                .redirectUri("https://oauth.pstmn.io/v1/callback") // Postman OAuth2 testing
+                .redirectUri("http://localhost:3000/auth/callback") // React client application callback
                 .scope(OidcScopes.OPENID)
                 .scope("api.read")
                 .scope("api.write")
                 .scope("api.delete")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                 .build();
 
         return new InMemoryRegisteredClientRepository(registeredClient);
