@@ -288,221 +288,223 @@ const Analytics = () => {
     const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
     // Main analytics layout
-    return (
-        <div className="container mx-auto py-8 px-4 max-w-7xl">
-            <div className="space-y-8">
+    // return (
+    //     <div className="container mx-auto py-8 px-4 max-w-7xl">
+    //         <div className="space-y-8">
 
-                {/* Header Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate('/dashboard')}
-                            className="flex items-center gap-2">
-                            <ArrowLeft className="h-4 w-4" />
-                            Back to Dashboard
-                        </Button>
-                    </div>
+    //             {/* Header Section */}
+    //             <div className="space-y-4">
+    //                 <div className="flex items-center gap-4">
+    //                     <Button
+    //                         variant="outline"
+    //                         size="sm"
+    //                         onClick={() => navigate('/dashboard')}
+    //                         className="flex items-center gap-2">
+    //                         <ArrowLeft className="h-4 w-4" />
+    //                         Back to Dashboard
+    //                     </Button>
+    //                 </div>
 
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-bold">Analytics for: {shortCode}</h1>
+    //                 <div className="space-y-2">
+    //                     <h1 className="text-3xl font-bold">Analytics for: {shortCode}</h1>
 
-                        {/* Original URL with copy functionality */}
-                        <div className="flex items-center gap-2 max-w-4xl">
-                            <Input
-                                value={urlData.originalUrl}
-                                readOnly
-                                className="flex-1 font-mono text-sm bg-muted"
-                            />
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => copyToClipboard(urlData.originalUrl)}
-                                className="shrink-0">
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+    //                     {/* Original URL with copy functionality */}
+    //                     <div className="flex items-center gap-2 max-w-4xl">
+    //                         <Input
+    //                             value={urlData.originalUrl}
+    //                             readOnly
+    //                             className="flex-1 font-mono text-sm bg-muted"
+    //                         />
+    //                         <Button
+    //                             variant="outline"
+    //                             size="icon"
+    //                             onClick={() => copyToClipboard(urlData.originalUrl)}
+    //                             className="shrink-0">
+    //                             <Copy className="h-4 w-4" />
+    //                         </Button>
+    //                     </div>
+    //                 </div>
+    //             </div>
 
-                {/* Key Metrics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Total Clicks */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
-                            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{analyticsData.totalClicks.toLocaleString()}</div>
-                        </CardContent>
-                    </Card>
+    //             {/* Key Metrics Cards */}
+    //             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    //                 {/* Total Clicks */}
+    //                 <Card>
+    //                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                         <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+    //                         <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+    //                     </CardHeader>
+    //                     <CardContent>
+    //                         <div className="text-2xl font-bold">{analyticsData.totalClicks.toLocaleString()}</div>
+    //                     </CardContent>
+    //                 </Card>
 
-                    {/* Short Code */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Short Code</CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold font-mono">{shortCode}</div>
-                        </CardContent>
-                    </Card>
+    //                 {/* Short Code */}
+    //                 <Card>
+    //                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                         <CardTitle className="text-sm font-medium">Short Code</CardTitle>
+    //                         <Calendar className="h-4 w-4 text-muted-foreground" />
+    //                     </CardHeader>
+    //                     <CardContent>
+    //                         <div className="text-2xl font-bold font-mono">{shortCode}</div>
+    //                     </CardContent>
+    //                 </Card>
 
-                    {/* Status */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Status</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                                Active
-                            </Badge>
-                        </CardContent>
-                    </Card>
-                </div>
+    //                 {/* Status */}
+    //                 <Card>
+    //                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    //                         <CardTitle className="text-sm font-medium">Status</CardTitle>
+    //                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
+    //                     </CardHeader>
+    //                     <CardContent>
+    //                         <Badge variant="outline" className="text-green-600 border-green-600">
+    //                             Active
+    //                         </Badge>
+    //                     </CardContent>
+    //                 </Card>
+    //             </div>
 
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Clicks Over Time */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Clock className="h-5 w-5" />
-                                Clicks Over Time
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={timeSeriesData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="time" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Bar dataKey="clicks" fill="#0088FE" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
+    //             {/* Charts Section */}
+    //             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    //                 {/* Clicks Over Time */}
+    //                 <Card>
+    //                     <CardHeader>
+    //                         <CardTitle className="flex items-center gap-2">
+    //                             <Clock className="h-5 w-5" />
+    //                             Clicks Over Time
+    //                         </CardTitle>
+    //                     </CardHeader>
+    //                     <CardContent>
+    //                         <div className="h-[300px]">
+    //                             <ResponsiveContainer width="100%" height="100%">
+    //                                 <BarChart data={timeSeriesData}>
+    //                                     <CartesianGrid strokeDasharray="3 3" />
+    //                                     <XAxis dataKey="time" />
+    //                                     <YAxis />
+    //                                     <Tooltip />
+    //                                     <Bar dataKey="clicks" fill="#0088FE" />
+    //                                 </BarChart>
+    //                             </ResponsiveContainer>
+    //                         </div>
+    //                     </CardContent>
+    //                 </Card>
 
-                    {/* Browser Breakdown */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Monitor className="h-5 w-5" />
-                                Browser Breakdown
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={browserData}
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                        >
-                                            {browserData.map((_, index) => (
-                                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+    //                 {/* Browser Breakdown */}
+    //                 <Card>
+    //                     <CardHeader>
+    //                         <CardTitle className="flex items-center gap-2">
+    //                             <Monitor className="h-5 w-5" />
+    //                             Browser Breakdown
+    //                         </CardTitle>
+    //                     </CardHeader>
+    //                     <CardContent>
+    //                         <div className="h-[300px]">
+    //                             <ResponsiveContainer width="100%" height="100%">
+    //                                 <PieChart>
+    //                                     <Pie
+    //                                         data={browserData}
+    //                                         cx="50%"
+    //                                         cy="50%"
+    //                                         outerRadius={80}
+    //                                         fill="#8884d8"
+    //                                         dataKey="value"
+    //                                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+    //                                     >
+    //                                         {browserData.map((_, index) => (
+    //                                             <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+    //                                         ))}
+    //                                     </Pie>
+    //                                     <Tooltip />
+    //                                     <Legend />
+    //                                 </PieChart>
+    //                             </ResponsiveContainer>
+    //                         </div>
+    //                     </CardContent>
+    //                 </Card>
+    //             </div>
 
-                {/* Recent Clicks Table */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Clicks</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Clicked At</TableHead>
-                                        <TableHead>Browser</TableHead>
-                                        <TableHead>OS</TableHead>
-                                        <TableHead className="hidden md:table-cell">User Agent</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {clicksData.content.map((click) => {
-                                        const { browser, os } = parseUserAgent(click.userAgent);
-                                        return (
-                                            <TableRow key={click.id}>
-                                                <TableCell className="font-medium">
-                                                    {format(new Date(click.clickedAt), 'MMM dd, yyyy, h:mm a')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary">{browser}</Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">{os}</Badge>
-                                                </TableCell>
-                                                <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-xs truncate">
-                                                    {click.userAgent}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
+    //             {/* Recent Clicks Table */}
+    //             <Card>
+    //                 <CardHeader>
+    //                     <CardTitle>Recent Clicks</CardTitle>
+    //                 </CardHeader>
+    //                 <CardContent>
+    //                     <div className="rounded-md border">
+    //                         <Table>
+    //                             <TableHeader>
+    //                                 <TableRow>
+    //                                     <TableHead>Clicked At</TableHead>
+    //                                     <TableHead>Browser</TableHead>
+    //                                     <TableHead>OS</TableHead>
+    //                                     <TableHead className="hidden md:table-cell">User Agent</TableHead>
+    //                                 </TableRow>
+    //                             </TableHeader>
+    //                             <TableBody>
+    //                                 {clicksData.content.map((click) => {
+    //                                     const { browser, os } = parseUserAgent(click.userAgent);
+    //                                     return (
+    //                                         <TableRow key={click.id}>
+    //                                             <TableCell className="font-medium">
+    //                                                 {format(new Date(click.clickedAt), 'MMM dd, yyyy, h:mm a')}
+    //                                             </TableCell>
+    //                                             <TableCell>
+    //                                                 <Badge variant="secondary">{browser}</Badge>
+    //                                             </TableCell>
+    //                                             <TableCell>
+    //                                                 <Badge variant="outline">{os}</Badge>
+    //                                             </TableCell>
+    //                                             <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-xs truncate">
+    //                                                 {click.userAgent}
+    //                                             </TableCell>
+    //                                         </TableRow>
+    //                                     );
+    //                                 })}
+    //                             </TableBody>
+    //                         </Table>
+    //                     </div>
 
-                        {/* Pagination */}
-                        {clicksData.totalPages > 1 && (
-                            <div className="flex justify-center mt-4">
-                                <Pagination>
-                                    <PaginationContent>
-                                        <PaginationItem>
-                                            <PaginationPrevious
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                className={clicksData.first ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                            />
-                                        </PaginationItem>
+    //                     {/* Pagination */}
+    //                     {clicksData.totalPages > 1 && (
+    //                         <div className="flex justify-center mt-4">
+    //                             <Pagination>
+    //                                 <PaginationContent>
+    //                                     <PaginationItem>
+    //                                         <PaginationPrevious
+    //                                             onClick={() => handlePageChange(currentPage - 1)}
+    //                                             className={clicksData.first ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+    //                                         />
+    //                                     </PaginationItem>
 
-                                        {Array.from({ length: clicksData.totalPages }, (_, i) => (
-                                            <PaginationItem key={i}>
-                                                <PaginationLink
-                                                    onClick={() => handlePageChange(i)}
-                                                    isActive={i === currentPage}
-                                                    className="cursor-pointer"
-                                                >
-                                                    {i + 1}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
+    //                                     {Array.from({ length: clicksData.totalPages }, (_, i) => (
+    //                                         <PaginationItem key={i}>
+    //                                             <PaginationLink
+    //                                                 onClick={() => handlePageChange(i)}
+    //                                                 isActive={i === currentPage}
+    //                                                 className="cursor-pointer"
+    //                                             >
+    //                                                 {i + 1}
+    //                                             </PaginationLink>
+    //                                         </PaginationItem>
+    //                                     ))}
 
-                                        <PaginationItem>
-                                            <PaginationNext
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                className={clicksData.last ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+    //                                     <PaginationItem>
+    //                                         <PaginationNext
+    //                                             onClick={() => handlePageChange(currentPage + 1)}
+    //                                             className={clicksData.last ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+    //                                         />
+    //                                     </PaginationItem>
+    //                                 </PaginationContent>
+    //                             </Pagination>
+    //                         </div>
+    //                     )}
+    //                 </CardContent>
+    //             </Card>
 
-            </div>
-        </div>
-    );
+    //         </div>
+    //     </div>
+    // );
+
+    return ('Coming Soon...');
 };
 
 export default Analytics;
