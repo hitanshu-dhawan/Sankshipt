@@ -4,7 +4,11 @@
  * This comprehensive analytics page was implemented by 'GitHub Copilot'.
  * It provides detailed analytics for shortened URLs including click tracking,
  * data visualizations, and paginated click history.
+ * 
+ * TODO : The code is implemented using GitHub Copilot and may require review for optimization and best practices.
  */
+
+// TODO : The code is implemented using GitHub Copilot and may require review for optimization and best practices.
 
 // React hooks for state and lifecycle management
 import { useState, useEffect } from 'react';
