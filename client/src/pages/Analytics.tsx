@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../components/ui/pagination';
 
 // Icon components from the 'lucide-react' library
-import { Copy, MousePointerClick, Calendar } from 'lucide-react';
+import { Copy, MousePointerClick, Hash } from 'lucide-react';
 
 // Toast notification library
 import { toast } from "sonner";
@@ -21,6 +21,9 @@ import { format } from 'date-fns';
 
 // API client for making HTTP requests
 import apiClient from '../api/api-client';
+
+// Configuration constants
+import { API_SERVER_URL } from '../config';
 
 
 // #region Type Definitions
@@ -169,50 +172,64 @@ const Analytics = () => {
 
     /** Main analytics layout */
     return (
-        <div className="container mx-auto py-8 px-4 max-w-7xl">
+        <div className="container mx-auto py-8 px-4">
             <div className="space-y-8">
 
                 {/* Header Section */}
                 <div className="space-y-4">
+
+                    {/* Title and Short Code inline */}
+                    <div className="flex items-baseline gap-2">
+                        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+                        <span className="text-2xl font-mono font-semibold px-4 py-1 bg-muted rounded-md">
+                            {shortCode}
+                        </span>
+                    </div>
+
+                    {/* Short URL with copy functionality */}
                     <div className="space-y-2">
-                        <h1 className="text-3xl font-bold">Analytics for: {shortCode}</h1>
-
-                        {/* Original URL with copy functionality */}
+                        <label className="text-sm font-medium text-muted-foreground">Short URL</label>
                         <div className="flex items-center gap-2 max-w-4xl">
                             <Input
-                                // value={urlData.originalUrl}
+                                value={`${API_SERVER_URL}/${shortCode}`}
                                 readOnly
                                 className="flex-1 font-mono text-sm bg-muted"
                             />
                             <Button
                                 variant="outline"
                                 size="icon"
-                                // onClick={() => copyToClipboard(urlData.originalUrl)}
-                                className="shrink-0">
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-
-                        {/* Short URL with copy functionality */}
-                        <div className="flex items-center gap-2 max-w-4xl">
-                            <Input
-                                value={`${window.location.origin}/${shortCode}`}
-                                readOnly
-                                className="flex-1 font-mono text-sm bg-muted"
-                            />
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => copyToClipboard(`${window.location.origin}/${shortCode}`)}
+                                onClick={() => copyToClipboard(`${API_SERVER_URL}/${shortCode}`)}
                                 className="shrink-0">
                                 <Copy className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
+
+                    {/* Original URL with copy functionality */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">Original URL</label>
+                        <div className="flex items-center gap-2 max-w-4xl">
+                            <Input
+                                value={clicksData.content[0].originalUrl}
+                                readOnly
+                                className="flex-1 font-mono text-sm bg-muted"
+                            />
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => copyToClipboard(clicksData.content[0].originalUrl)}
+                                className="shrink-0">
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+
                 </div>
+
 
                 {/* Key Metrics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                     {/* Total Clicks */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -220,7 +237,7 @@ const Analytics = () => {
                             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {/* <div className="text-2xl font-bold">{analyticsData.totalClicks.toLocaleString()}</div> */}
+                            <div className="text-2xl font-bold font-mono">{clicksData.totalElements.toLocaleString()}</div>
                         </CardContent>
                     </Card>
 
@@ -228,17 +245,14 @@ const Analytics = () => {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Short Code</CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <Hash className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold font-mono">{shortCode}</div>
                         </CardContent>
                     </Card>
 
-
                 </div>
-
-
 
                 {/* Recent Clicks Table */}
                 <Card>
