@@ -132,6 +132,7 @@ const Analytics = () => {
         fetchAnalyticsData(currentPage);
     }, [shortCode, currentPage]);
 
+    // Handle page change for pagination
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
@@ -254,18 +255,22 @@ const Analytics = () => {
 
                 </div>
 
-                {/* Recent Clicks Table */}
+                {/* Recent Clicks Table with Pagination */}
                 <Card>
+
                     <CardHeader>
                         <CardTitle>Recent Clicks</CardTitle>
                     </CardHeader>
+
                     <CardContent>
+
+                        {/* Recent Clicks Table */}
                         <div className="rounded-md border">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Clicked At</TableHead>
-                                        <TableHead className="hidden md:table-cell">User Agent</TableHead>
+                                        <TableHead>User Agent</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -275,7 +280,7 @@ const Analytics = () => {
                                                 <TableCell className="font-medium">
                                                     {format(new Date(click.clickedAt), 'MMM dd, yyyy, h:mm a')}
                                                 </TableCell>
-                                                <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-xs truncate">
+                                                <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
                                                     {click.userAgent}
                                                 </TableCell>
                                             </TableRow>
@@ -290,6 +295,8 @@ const Analytics = () => {
                             <div className="flex justify-center mt-4">
                                 <Pagination>
                                     <PaginationContent>
+
+                                        {/* Previous Button */}
                                         <PaginationItem>
                                             <PaginationPrevious
                                                 onClick={() => handlePageChange(currentPage - 1)}
@@ -302,24 +309,27 @@ const Analytics = () => {
                                                 <PaginationLink
                                                     onClick={() => handlePageChange(i)}
                                                     isActive={i === currentPage}
-                                                    className="cursor-pointer"
-                                                >
+                                                    className="cursor-pointer">
                                                     {i + 1}
                                                 </PaginationLink>
                                             </PaginationItem>
                                         ))}
 
+                                        {/* Next Button */}
                                         <PaginationItem>
                                             <PaginationNext
                                                 onClick={() => handlePageChange(currentPage + 1)}
                                                 className={clicksData.last ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                                             />
                                         </PaginationItem>
+
                                     </PaginationContent>
                                 </Pagination>
                             </div>
                         )}
+
                     </CardContent>
+
                 </Card>
 
             </div>
