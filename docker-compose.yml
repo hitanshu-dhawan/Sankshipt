@@ -28,6 +28,7 @@ services:
       retries: 5          # need 5 failures in a row to mark as unhealthy
       start_period: 30s   # give MySQL 30s grace period before counting failures
 
+
   # Authentication Server
   # Handles user authentication, authorization, and OAuth token management
   # Creates its own database (sankshipt_auth_db) for user credentials and tokens
@@ -56,6 +57,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+
 
   # Main API Server
   # Provides core application functionality and business logic
@@ -88,10 +90,36 @@ services:
       retries: 5
       start_period: 30s
 
+
+  # Client Development Server
+  # Serves the React frontend application in development mode with hot reload
+  # Connects to API and Auth servers for backend functionality
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: sankshipt-client
+    environment:
+      CHOKIDAR_USEPOLLING: true  # Enable polling for file changes in Docker
+    ports:
+      - "3000:3000"  # Vite development server port
+    volumes:
+      - ./client:/app/client  # Mount source code for hot reload
+      - /app/client/node_modules  # Prevent overwriting node_modules
+    depends_on:
+      auth-server:
+        condition: service_healthy  # Ensure auth server is available for token validation
+      api-server:
+        condition: service_healthy  # Ensure API server is available for backend calls
+    networks:
+      - sankshipt-network
+
+
 # Named volume for MySQL data persistence
 # Data survives container restarts and recreations
 volumes:
   mysql_data:
+
 
 # Custom bridge network for secure inter-service communication
 # Isolates application services from external networks
